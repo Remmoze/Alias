@@ -13,7 +13,7 @@ public static class AliasFactory
     private static List<AliasEntry> GetAliases() =>
         RegistryManipulation.GetAliases();
 
-    public static void List(bool? date)
+    public static void List()
     {
         var aliases = GetAliases();
         foreach (var alias in aliases) {
@@ -22,11 +22,9 @@ public static class AliasFactory
             Console.ResetColor();
             Console.Write(" - ");
 
-            if (date == true) {
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write(alias.Date);
-                Console.ResetColor();
-            }
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.Write(alias.Date);
+            Console.ResetColor();
 
             Console.WriteLine();
             Console.WriteLine(alias.Path);
@@ -35,7 +33,7 @@ public static class AliasFactory
     }
 
 
-    public static void Add(string alias, string path)
+    public static void Add(string alias, string path, bool? force = false)
     {
         if (string.IsNullOrEmpty(alias) || string.IsNullOrEmpty(path)) {
             Console.WriteLine("Provided invalid arguments");
@@ -53,7 +51,7 @@ public static class AliasFactory
         }
 
         var dirname = Path.GetDirectoryName(path);
-        if(dirname == null) {
+        if (dirname == null) {
             Console.WriteLine("Unknown error.");
             return;
         }
@@ -66,8 +64,15 @@ public static class AliasFactory
         var aliases = GetAliases();
 
         if (aliases.Any(x => x.Name == alias)) {
-            Console.WriteLine($"Alias \"{alias}\" already exists.");
-            return;
+            if (force.HasValue && (bool)force) {
+                // if --force flag was provided, we remove existing alias and create a new one.
+                Remove(alias);
+            }
+            else {
+
+                Console.WriteLine($"Alias \"{alias}\" already exists.");
+                return;
+            }
         }
 
         RegistryManipulation.Add(alias, path, type);
