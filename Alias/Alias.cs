@@ -6,6 +6,7 @@ public struct AliasEntry
 {
     public string Name { get; set; }
     public string Path { get; set; }
+    public string Type { get; set; }
     public string Date { get; set; }
 }
 
@@ -38,6 +39,13 @@ public static class AliasFactory
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Alias");
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
+    }
+
+    private static string GetAliasPath(string alias)
+    {
+        AppDataFolder();
+        var directory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(directory, "Alias", alias + ".bat");
     }
 
 
@@ -82,19 +90,19 @@ public static class AliasFactory
                 return;
             }
         }
-        if(type == "dir") {
+        if (type == "dir") {
             AddDirectory(alias, dirname);
-        } else {
+        }
+        else {
             RegistryManipulation.Add(alias, path);
         }
-        
+
     }
 
     private static void AddDirectory(string alias, string path)
     {
-        AppDataFolder();
-        var directory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var batPath = Path.Combine(directory, "Alias", alias + ".bat");
+        var batPath = GetAliasPath(alias);
+
         using FileStream fs = File.Create(batPath);
 
         var text = "start C:\\Windows\\explorer.exe " + path;
@@ -103,7 +111,7 @@ public static class AliasFactory
         fs.Write(bytes, 0, bytes.Length);
         fs.Close();
 
-        RegistryManipulation.Add(alias, batPath);
+        RegistryManipulation.Add(alias, batPath, "dir");
     }
 
 
@@ -121,11 +129,20 @@ public static class AliasFactory
             return;
         }
 
-        RegistryManipulation.Remove(alias);
+        var entry = aliases.FirstOrDefault(x => x.Name == alias);
+        if(entry.Type == "dir") {
+            RemoveDirectory(alias);
+        } else {
+            RegistryManipulation.Remove(alias);
+        }
     }
 
     public static void RemoveDirectory(string alias)
     {
+        var batPath = GetAliasPath(alias);
+        if(File.Exists(batPath))
+            File.Delete(batPath);
 
+        RegistryManipulation.Remove(alias);
     }
 }

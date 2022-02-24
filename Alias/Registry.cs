@@ -21,8 +21,9 @@ public static class RegistryManipulation
             if (key.EndsWith(".exe"))
                 cleanKey = key[..key.IndexOf(".exe")];
 
-            var creationDate = (string?)regAlias.GetValue("CreationDate");
+            var creationDate = (string?)regAlias.GetValue("CreationDate") ?? "";
             var path = (string?)regAlias.GetValue("");
+            var type = (string?)regAlias.GetValue("Type") ?? "exe";
 
             if (path == null) {
                 Console.WriteLine($"Warning: found key {cleanKey} without a path!");
@@ -31,16 +32,16 @@ public static class RegistryManipulation
 
             aliases.Add(new AliasEntry() {
                 Name = cleanKey,
-                Date = creationDate ?? "",
-                Path = path
-            });
+                Date = creationDate,
+                Path = path,
+                Type = type
+            }) ;
         }
         return aliases;
     }
 
-    public static void Add(string alias, string path)
+    public static void Add(string alias, string path, string type = "exe")
     {
-
         var dir = Path.GetDirectoryName(path);
         if (!Directory.Exists(dir)) {
             Console.WriteLine("Error occured while reading Path");
@@ -58,6 +59,7 @@ public static class RegistryManipulation
 
             reg.SetValue("", path);
             reg.SetValue("Path", dir);
+            reg.SetValue("Type", type);
             reg.SetValue("Alias", true);
             reg.SetValue("CreationDate", DateTime.Now);
 
