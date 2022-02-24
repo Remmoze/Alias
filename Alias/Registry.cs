@@ -38,14 +38,8 @@ public static class RegistryManipulation
         return aliases;
     }
 
-    public static void Add(string alias, string path, string type)
+    public static void Add(string alias, string path)
     {
-
-        // TODO: add folder support with explorer
-        if(type == "dir") {
-            Console.WriteLine("Currently only executables are supported");
-            return;
-        }
 
         var dir = Path.GetDirectoryName(path);
         if (!Directory.Exists(dir)) {

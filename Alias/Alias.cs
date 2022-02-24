@@ -1,4 +1,5 @@
 ﻿namespace Alias;
+using System.Text;
 using System.Text.RegularExpressions;
 
 public struct AliasEntry
@@ -30,6 +31,13 @@ public static class AliasFactory
             Console.WriteLine(alias.Path);
             Console.WriteLine();
         }
+    }
+
+    private static void AppDataFolder()
+    {
+        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Alias");
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
     }
 
 
@@ -74,9 +82,30 @@ public static class AliasFactory
                 return;
             }
         }
-
-        RegistryManipulation.Add(alias, path, type);
+        if(type == "dir") {
+            AddDirectory(alias, dirname);
+        } else {
+            RegistryManipulation.Add(alias, path);
+        }
+        
     }
+
+    private static void AddDirectory(string alias, string path)
+    {
+        AppDataFolder();
+        var directory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var batPath = Path.Combine(directory, "Alias", alias + ".bat");
+        using FileStream fs = File.Create(batPath);
+
+        var text = "start C:\\Windows\\explorer.exe " + path;
+        var bytes = Encoding.UTF8.GetBytes(text);
+
+        fs.Write(bytes, 0, bytes.Length);
+        fs.Close();
+
+        RegistryManipulation.Add(alias, batPath);
+    }
+
 
     public static void Remove(string alias)
     {
@@ -93,5 +122,10 @@ public static class AliasFactory
         }
 
         RegistryManipulation.Remove(alias);
+    }
+
+    public static void RemoveDirectory(string alias)
+    {
+
     }
 }
