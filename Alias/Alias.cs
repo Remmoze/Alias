@@ -37,8 +37,20 @@ public static class AliasFactory
     private static void AppDataFolder()
     {
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Alias");
-        if (!Directory.Exists(folder))
+        if (!Directory.Exists(folder)) {
             Directory.CreateDirectory(folder);
+            using FileStream fs = File.Create(Path.Combine(folder, "ReadMe.txt"));
+
+            var text = @"These .bat files are created to add aliases to directories
+
+Registry doesn't allow you to pass parameters (like path to explorer.exe) to executables. Thus Alias creates .bat files and links registry to them instead.
+This is the only way I found how to make it work.";
+
+            var bytes = Encoding.UTF8.GetBytes(text);
+
+            fs.Write(bytes, 0, bytes.Length);
+            fs.Close();
+        }
     }
 
     private static string GetAliasPath(string alias)
